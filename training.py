@@ -1,66 +1,87 @@
-import os
 import numpy as np
+from PIL import Image
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import os
 import cv2
-from sklearn.model_selection import train_test_split
-import tensorflow as tf
-from tensorflow.keras import layers, models
+labels = os.listdir("./Dataset")
+print(labels)
 
-# Path to the dataset folders
-drowsy_dir = "dataset/drowsiness/"
-active_dir = "dataset/active/"
+# Load the image using PIL
+image_path = "./Dataset/Closed/_0.jpg"
+image = Image.open(image_path)
 
-# Function to load images from a folder
-def load_images_from_folder(folder):
-    images = []
-    for filename in os.listdir(folder):
-        img = cv2.imread(os.path.join(folder, filename))
-        if img is not None:
-            images.append(img)
-    return images   
+# Display the image using Matplotlib
+plt.imshow(image)
+plt.show()
+a = plt.imread("./Dataset/yawn/2.jpg")
+print(a.shape)
+plt.imshow(plt.imread("./Dataset/yawn/2.jpg"))
 
-# Load images from folders
-drowsy_images = load_images_from_folder(drowsy_dir)
-active_images = load_images_from_folder(active_dir)
 
-# Label images
-drowsy_labels = np.zeros(len(drowsy_images))
-active_labels = np.ones(len(active_images))
+def face_for_yawn(direc="./Dataset", face_cas_path="./archive/haarcascade_frontalface_default.xml"):
+    yaw_no = []
+    IMG_SIZE = 145
+    categories = ["yawn", "no_yawn"]
+    for category in categories:
+        path_link = os.path.join(direc, category)
+        class_num1 = categories.index(category)
+        print(class_num1)
+        for image in os.listdir(path_link):
+            image_array = cv2.imread(os.path.join(
+                path_link, image), cv2.IMREAD_COLOR)
+            face_cascade = cv2.CascadeClassifier(face_cas_path)
+            faces = face_cascade.detectMultiScale(image_array, 1.3, 5)
+            for (x, y, w, h) in faces:
+                img = cv2.rectangle(image_array, (x, y),
+                                    (x+w, y+h), (0, 255, 0), 2)
+                roi_color = img[y:y+h, x:x+w]
 
-# Concatenate images and labels
-X = np.array(drowsy_images + active_images)
-y = np.concatenate((drowsy_labels, active_labels))
+                # Resize the image to IMG_SIZE
+                resized_array = cv2.resize(roi_color, (IMG_SIZE, IMG_SIZE))
 
-# Preprocess images (resize and normalize)
-X = np.array([cv2.resize(image, (100, 100)) for image in X])
-X = X.astype('float32') / 255.0
+                yaw_no.append([resized_array, class_num1])
+    return yaw_no
 
-# Split dataset into training and validation sets
-X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Define CNN model architecture
-model = models.Sequential([
-    layers.Conv2D(32, (3, 3), activation='relu', input_shape=(100, 100, 3)),
-    layers.MaxPooling2D((2, 2)),
-    layers.Conv2D(64, (3, 3), activation='relu'),
-    layers.MaxPooling2D((2, 2)),
-    layers.Conv2D(128, (3, 3), activation='relu'),
-    layers.MaxPooling2D((2, 2)),
-    layers.Flatten(),
-    layers.Dense(128, activation='relu'),
-    layers.Dense(1, activation='sigmoid')
-])
+yawn_no_yawn = face_for_yawn()
 
-# Compile the model
-model.compile(optimizer='adam',
-              loss='binary_crossentropy',
-              metrics=['accuracy'])
 
-# Train the model
-model.fit(X_train, y_train, epochs=10, batch_size=32, validation_data=(X_val, y_val))
+def get_data(dir_path="./Dataset", face_cas="./archive/haarcascade_frontalface_default.xml", eye_cas="./archive/haarcascade.xml"):
+    labels = ['Closed', 'Open']
+    IMG_SIZE = 145
+    data = []
+    for label in labels:
+        path = os.path.join(dir_path, label)
+        class_num = labels.index(label)
+        class_num += 2
+        print(class_num)
+        for img in os.listdir(path):
+            try:
+                img_array = cv2.imread(
+                    os.path.join(path, img), cv2.IMREAD_COLOR)
+                resized_array = cv2.resize(img_array, (IMG_SIZE, IMG_SIZE))
+                data.append([resized_array, class_num])
+            except Exception as e:
+                print(e)
+    return data
 
-# Evaluate the model
-loss, accuracy = model.evaluate(X_val, y_val)
-print("Validation accuracy:", accuracy)
 
-# Save the model
-model.save("drowsiness_detection_model.h5")
+data_train = get_data()
+
+
+def append_data():
+    yaw_no = face_for_yawn()
+    data = get_data()
+
+    # Extend yaw_no with data while preserving the structure
+    yaw_no.extend(data)
+
+    # Convert the list of lists into a NumPy array
+    new_data = np.array(yaw_no)
+
+    return new_data
+
+
+new_data = append_data()
