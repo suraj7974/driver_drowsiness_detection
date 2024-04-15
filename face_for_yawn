@@ -1,0 +1,39 @@
+def face_for_yawn(direc="./Dataset", face_cas_path="./archive/haarcascade_frontalface_default.xml", num_images=5):
+    yaw_no = []
+    IMG_SIZE = 145
+    categories = ["yawn", "no_yawn"]
+    image_count = 0
+    for category in categories:
+        path_link = os.path.join(direc, category)
+        class_num1 = categories.index(category)
+        print(class_num1)
+        for image in os.listdir(path_link):
+            image_array = cv2.imread(os.path.join(
+                path_link, image), cv2.IMREAD_COLOR)
+            face_cascade = cv2.CascadeClassifier(face_cas_path)
+            faces = face_cascade.detectMultiScale(image_array, 1.3, 5)
+            for (x, y, w, h) in faces:
+                img = cv2.rectangle(image_array, (x, y),
+                                    (x+w, y+h), (0, 255, 0), 2)
+                roi_color = img[y:y+h, x:x+w]
+                resized_array = cv2.resize(roi_color, (IMG_SIZE, IMG_SIZE))
+                yaw_no.append([resized_array, class_num1])
+                # Display the original image
+                plt.figure(figsize=(8, 4))
+                plt.subplot(1, 2, 1)
+                plt.imshow(cv2.cvtColor(image_array, cv2.COLOR_BGR2RGB))
+                plt.title("Original Image")
+                plt.axis('off')
+                # Display the detected face
+                plt.subplot(1, 2, 2)
+                plt.imshow(resized_array)
+                plt.title("Detected Face")
+                plt.axis('off')
+                plt.show()
+                image_count += 1
+                if image_count >= num_images:
+                    return yaw_no
+    return yaw_no
+
+
+yawn_no_yawn = face_for_yawn(num_images=3)
