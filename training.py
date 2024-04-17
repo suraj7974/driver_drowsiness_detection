@@ -1,5 +1,3 @@
-import numpy as np
-from PIL import Image
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -7,16 +5,15 @@ import os
 import cv2
 labels = os.listdir("./Dataset")
 print(labels)
-
-# Load the image using PIL
-image_path = "./Dataset/Closed/_0.jpg"
-image = Image.open(image_path)
-
-# Display the image using Matplotlib
-plt.imshow(image)
-plt.show()
+# closeEye
+plt.imshow(plt.imread("./Dataset/Closed/_0.jpg"))
+# closeEye
+plt.imshow(plt.imread("./Dataset/Open/_0.jpg"))
 a = plt.imread("./Dataset/yawn/2.jpg")
-print(a.shape)
+a.shape
+# no yawn
+plt.imshow(plt.imread("./Dataset/no_yawn/2.jpg"))
+# yawn
 plt.imshow(plt.imread("./Dataset/yawn/2.jpg"))
 
 
@@ -37,11 +34,8 @@ def face_for_yawn(direc="./Dataset", face_cas_path="./archive/haarcascade_fronta
                 img = cv2.rectangle(image_array, (x, y),
                                     (x+w, y+h), (0, 255, 0), 2)
                 roi_color = img[y:y+h, x:x+w]
-
-                # Resize the image to IMG_SIZE
                 resized_array = cv2.resize(roi_color, (IMG_SIZE, IMG_SIZE))
-
-                yaw_no.append([resized_array, class_num1])
+                yaw_no.append([resized_array])
     return yaw_no
 
 
@@ -72,16 +66,12 @@ data_train = get_data()
 
 
 def append_data():
+    #     total_data = []
     yaw_no = face_for_yawn()
     data = get_data()
-
-    # Extend yaw_no with data while preserving the structure
-    yaw_no.extend(data)
-
-    # Convert the list of lists into a NumPy array
-    new_data = np.array(yaw_no)
-
+    # Concatenate along axis 0 (rows)
+    new_data = np.concatenate((yaw_no, data), axis=0)
     return new_data
 
 
-new_data = append_data()
+new_data1 = append_data()
