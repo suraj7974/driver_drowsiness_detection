@@ -36,6 +36,8 @@ def face_for_yawn(direc="./Dataset", face_cas_path="./archive/haarcascade_fronta
                 roi_color = img[y:y+h, x:x+w]
                 resized_array = cv2.resize(roi_color, (IMG_SIZE, IMG_SIZE))
                 yaw_no.append([resized_array])
+                print(resized_array.ndim)
+                print(resized_array.shape)
     return yaw_no
 
 
@@ -57,6 +59,8 @@ def get_data(dir_path="./Dataset", face_cas="./archive/haarcascade_frontalface_d
                     os.path.join(path, img), cv2.IMREAD_COLOR)
                 resized_array = cv2.resize(img_array, (IMG_SIZE, IMG_SIZE))
                 data.append([resized_array, class_num])
+                print(resized_array.ndim)
+                print(resized_array.shape)
             except Exception as e:
                 print(e)
     return data
